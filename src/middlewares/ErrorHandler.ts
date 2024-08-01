@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { CustomException } from "../exceptions/CustomException";
 import { ResponseMetadata } from "../types/types";
 
+
 export default function ErrorHandler(
   err: Error,
   req: Request,
