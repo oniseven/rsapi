@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 
-import { encrypt } from "../utils/EncryptionHelper";
+import { encrypt } from "../utils/EncryptionUtils";
 import { Pasien } from "../models/billing/master/Pasien";
 import { JwtPayload } from "../types/types";
 import PatientService from "./PatientService";

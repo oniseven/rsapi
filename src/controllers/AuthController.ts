@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { validateUserInput } from "../utils/InputValidationHelper";
+import { validateUserInput } from "../utils/InputValidationUtils";
 
 import { ClientException } from "../exceptions/ClientException";
 import { ERROR_MESSAGE } from "../constants/messages";
@@ -30,7 +30,7 @@ const AuthController = async (
     // jika pasien daftar visite
     const { status: isBetweenTimeFrame, openAt, closeAt } =
       await AuthService.isRegisteredWithinTimeFrame();
-    if (!isBetweenTimeFrame)
+    if (isBetweenTimeFrame)
       throw new ForbiddenException(
         `Pendaftaran online hanya dapat dilakukan di hari aktif pada pukul ${openAt} sampai pukul ${closeAt}`
       );

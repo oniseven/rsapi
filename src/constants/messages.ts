@@ -33,9 +33,9 @@ export const ERROR_MESSAGE = {
     PATIENT_NOT_FOUND:
       "Anda belum terdaftar sebagai pasien. Silahkan melakukan pendaftaran pasien baru dengan datang langsung ke Rumah Sakit!",
     UNIT_NOT_AVAILABLE:
-      "Poli yang anda pilih tidak tersedia di RS Islam Jemursari",
+      "Poli yang anda pilih belum tersedia di Rumah Sakit Kami",
     INVALID_CHECKUP_DATE:
-      "Pendaftaran ke RS Islam Jemursari hanya dapat dilakukan beberapa dari Tanggal Periksa",
+      "Pendaftaran ke RS Islam Jemursari hanya dapat dilakukan sehari sebelum tanggal periksa",
     HOLIDAY_OR_SUNDAY: "Tidak bisa mendaftar di hari Minggu atau Tanggal Merah",
     ALREADY_REGISTERED_ONLINE:
       "Tidak dapat melakukan Pendaftaran karena anda telah Terdaftar melalui Aplikasi Online Rumah Sakit",
