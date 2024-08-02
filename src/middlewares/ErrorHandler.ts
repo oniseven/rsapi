@@ -16,11 +16,15 @@ export default function ErrorHandler(
     },
   };
 
-  if (!(err instanceof CustomException)) return res.status(500).json(response);
+  if (!(err instanceof CustomException)) {
+    // console.error(err)
+    return res.status(500).json(response);
+  }
 
   response.metadata.status = false;
   response.metadata.message = err.message;
   if (err.additionalInfo) response.info = err.additionalInfo;
 
-  return res.status(err.status).json(response);
+  const statusCode = err.status || 500;
+  return res.status(statusCode).json(response);
 }

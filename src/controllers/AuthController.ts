@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { validateUserInput } from "../helpers/InputValidationHelper";
+import { validateUserInput } from "../utils/InputValidationHelper";
 
 import { ClientException } from "../exceptions/ClientException";
 import { ERROR_MESSAGE } from "../constants/messages";

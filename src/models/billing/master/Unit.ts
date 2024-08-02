@@ -12,7 +12,7 @@ import {
 import { TindakanUnit } from "./TindakanUnit";
 import { Pelayanan } from "../Pelayanan";
 import { ApiReservation } from "../ApiReservation";
-import { encrypt } from "../../../helpers/EncryptionHelper";
+import { encrypt } from "../../../utils/EncryptionHelper";
 
 @Table({
   tableName: "b_ms_unit",
