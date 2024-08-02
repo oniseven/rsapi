@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 
-import config from "../../config";
+import config from "../../configs";
 
 const dbAntrean = new Sequelize(config.database.antrean);
 

@@ -5,7 +5,7 @@ import { Pasien } from "../models/billing/master/Pasien";
 import { JwtPayload } from "../types";
 import PatientService from "./PatientService";
 import RegistrationService from "./RegistrationService";
-import config from '../config';
+import config from '../configs';
 
 const getPatientData = async(norm: string, birthdate: string) => {
   return await PatientService.getData(norm, new Date(birthdate));
