@@ -1,5 +1,5 @@
 import "express";
-import { JwtPayload } from "./types";
+import { JwtPayload } from ".";
 
 
 interface CustomRequest extends Express.Request {

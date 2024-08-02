@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import { Pasien } from "../models/billing/master/Pasien";
 import { ReservasiOnline } from "../models/billing/ReservasiOnline";
-import { SequelizeLogging } from "../types/types";
+import { SequelizeLogging } from "../types";
 import { Pelayanan } from "../models/billing/Pelayanan";
 import { Kunjungan } from "../models/billing/Kunjungan";
 import { ViewKunjunganInap } from "../models/billing/view/ViewKunjunganInap";

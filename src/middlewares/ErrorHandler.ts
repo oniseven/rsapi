@@ -1,7 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import { CustomException } from "../exceptions/CustomException";
-import { ResponseMetadata } from "../types/types";
-
+import { ResponseMetadata } from "../types";
 
 export default function ErrorHandler(
   err: Error,

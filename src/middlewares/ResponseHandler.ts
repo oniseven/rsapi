@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { ResponseMetadata } from '../types/types'
+import { ResponseMetadata } from '../types'
 
 const ResponseHandler = (req: Request, res: Response, next: NextFunction) => {
   res.withData = function(response: any, status = true, message = 'success'){

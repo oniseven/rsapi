@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { TokenExpiredError, verify } from "jsonwebtoken";
 import { UnauthorizeException } from "../exceptions/UnauthorizeException";
-import { JwtPayload } from "../types/types";
+import { JwtPayload } from "../types";
 
 const SECRET = process.env.JWT_ENCRYPTION || "";
 const ISSUER = process.env.JWT_ISSUER || "";

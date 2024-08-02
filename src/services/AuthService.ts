@@ -2,7 +2,7 @@ import * as jwt from 'jsonwebtoken';
 
 import { encrypt } from "../utils/EncryptionUtils";
 import { Pasien } from "../models/billing/master/Pasien";
-import { JwtPayload } from "../types/types";
+import { JwtPayload } from "../types";
 import PatientService from "./PatientService";
 import RegistrationService from "./RegistrationService";
 import config from '../config';
