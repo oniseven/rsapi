@@ -4,7 +4,6 @@ import { ReservasiOnline } from "../models/billing/ReservasiOnline";
 import { SequelizeLogging } from "../types";
 import { Pelayanan } from "../models/billing/Pelayanan";
 import { Kunjungan } from "../models/billing/Kunjungan";
-import { ViewKunjunganInap } from "../models/billing/view/ViewKunjunganInap";
 import { Unit } from "../models/billing/master/Unit";
 
 const getData = async (

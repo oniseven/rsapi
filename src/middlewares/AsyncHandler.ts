@@ -4,7 +4,7 @@ const AsyncHandler =
     const fnReturn = fn(...args);
     const next = args[args.length - 1];
     return Promise.resolve(fnReturn).catch((error) => {
-      console.log('Error caught by AsyncHandler:', error);
+      console.error('Error caught by AsyncHandler:', error);
       next(error);
     });
   };

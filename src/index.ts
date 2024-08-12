@@ -83,11 +83,11 @@ async function startApp() {
     await dbBilling.authenticate();
     console.log("-------- DB Billing connected --------");
 
-    await dbAntrean.authenticate();
-    console.log("-------- DB Antrean connected --------");
+    // await dbAntrean.authenticate();
+    // console.log("-------- DB Antrean connected --------");
 
-    await dbSDM.authenticate();
-    console.log("-------- DB SDM connected     --------");
+    // await dbSDM.authenticate();
+    // console.log("-------- DB SDM connected     --------");
 
     console.log();
     console.log("#### Starting up application");

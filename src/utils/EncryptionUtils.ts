@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = Buffer.from(process.env.ED_SECRET as string, 'hex'); // 16, 24, or 32 bytes
+const SECRET = process.env.ED_SECRET as string || '';
+const ENCRYPTION_KEY = Buffer.from(SECRET, 'hex'); // 16, 24, or 32 bytes
 const IV_LENGTH = 16; // 16 bytes for AES
 
 export function encrypt(text: string): string {

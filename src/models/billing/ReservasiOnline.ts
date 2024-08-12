@@ -84,7 +84,7 @@ export class ReservasiOnline extends Model {
   })
   "user_act": number;
 
-  @Default(Sequelize.literal("NOW"))
+  @Default(Sequelize.literal("NOW()"))
   @Column({
     type: DataType.DATE,
   })

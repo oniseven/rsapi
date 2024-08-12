@@ -18,10 +18,10 @@ const config: {
       database: process.env.DB_NAME_BILLING || "default_billing_db",
       dialect: "mysql",
       username: process.env.DB_USERNAME_BILLING || "default_billing_user",
-      password: process.env.DB_PASSWORD_BILLING || "default_billing_password",
+      password: process.env.DB_PASSWORD_BILLING || "",
       host: process.env.DB_HOST_BILLING || "localhost",
       port: +(process.env.DB_PORT_BILLING || 3306),
-      models: [path.join(__dirname, "/../models/billing/**/*.js")],
+      models: [path.join(__dirname, "/../models/billing/**/*.{js,ts}")],
       define: {
         timestamps: false,
       },
@@ -34,7 +34,7 @@ const config: {
       password: process.env.DB_PASSWORD_ANTRE || "default_antrean_password",
       host: process.env.DB_HOST_ANTRE || "localhost",
       port: +(process.env.DB_PORT_ANTRE || 3306),
-      models: [path.join(__dirname, "/../models/antrean/**/*.js")],
+      models: [path.join(__dirname, "/../models/antrean/**/*.{js,ts}")],
       define: {
         timestamps: false,
       },
@@ -47,7 +47,7 @@ const config: {
       password: process.env.DB_PASSWORD_SDM || "default_sdm_password",
       host: process.env.DB_HOST_SDM || "localhost",
       port: +(process.env.DB_PORT_SDM || 3306),
-      models: [path.join(__dirname, "/../models/sdm/**/*.js")],
+      models: [path.join(__dirname, "/../models/sdm/**/*.{js,ts}")],
       define: {
         timestamps: false,
       },
