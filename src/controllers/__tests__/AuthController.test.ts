@@ -1,34 +1,21 @@
 import { Request, Response } from "express";
 import AuthController from "../AuthController";
+import { validateUserInput } from "../../utils/InputValidationUtils";
+import { ClientException } from "../../exceptions/ClientException";
 import AuthService from "../../services/AuthService";
+import { ForbiddenException } from "../../exceptions/ForbiddenException";
 import { AuthSchema } from "../../validations/AuthSchema";
 import { Pasien } from "../../models/billing/master/Pasien";
-import { ClientException } from "../../exceptions/ClientException";
 import { CustomException } from "../../exceptions/CustomException";
-import { validateUserInput } from "../../utils/InputValidationUtils";
 
 jest.mock("../../services/AuthService");
 jest.mock("../../utils/InputValidationUtils");
-jest.mock("../../models/billing/master/Pasien");
 
 describe("AuthController Test", () => {
-  beforeAll(() => {
-    process.env.ED_SECRET =
-      "1be5a9ab7f3fc312fbcedefb43419258bb480350395d89538891e34ad32c3294";
-  });
-
   let req: Partial<Request>;
   let res: Partial<Response>;
-  let next: jest.Mock;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
-  let withDataMock: jest.Mock;
 
   beforeEach(() => {
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-    withDataMock = jest.fn();
-
     req = {
       body: {
         norm: "000001",
@@ -38,229 +25,97 @@ describe("AuthController Test", () => {
     };
 
     res = {
-      status: statusMock,
-      json: jsonMock,
-      withData: withDataMock,
+      withData: jest.fn().mockReturnThis(),
     };
-
-    next = jest.fn();
 
     jest.clearAllMocks();
   });
 
-  it("should throw Exception when validateUserInput fails", async () => {
-    (validateUserInput as jest.Mock).mockImplementation(() => {
-      throw new ClientException("Validation failed");
-    });
+  const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
 
-    await expect(
-      AuthController(req as Request, res as Response)
-    ).rejects.toThrow(CustomException);
+  const setupMocks = (options: {
+    validationError?: boolean;
+    patientNotFound?: boolean;
+    withinTimeFrame?: boolean;
+    alreadyRegistered?: boolean;
+  }) => {
+    if (options.validationError) {
+      (validateUserInput as jest.Mock).mockImplementation(() => {
+        throw new ClientException("Validation failed");
+      });
+    } else {
+      (validateUserInput as jest.Mock).mockReturnValue(req.body);
+    }
 
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).not.toHaveBeenCalled();
-    expect(AuthService.isRegisteredWithinTimeFrame).not.toHaveBeenCalled();
-    expect(AuthService.hasRegistered).not.toHaveBeenCalled();
-    expect(AuthService.createToken).not.toHaveBeenCalled();
-  });
+    if (options.patientNotFound) {
+      (AuthService.getPatientData as jest.Mock).mockResolvedValue(null);
+    } else {
+      (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
+    }
 
-  it("should throw Exception when user is not found", async () => {
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-
-    (AuthService.getPatientData as jest.Mock).mockImplementation(() => {
-      throw new ClientException("Patient not found");
-    });
-
-    await expect(
-      AuthController(req as Request, res as Response)
-    ).rejects.toThrow(CustomException);
-
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
-    expect(AuthService.isRegisteredWithinTimeFrame).not.toHaveBeenCalled();
-    expect(AuthService.hasRegistered).not.toHaveBeenCalled();
-    expect(AuthService.createToken).not.toHaveBeenCalled();
-  });
-
-  it("should not call isRegisteredWithinTimeFrame and hasRegistered when register equal to false or undefined", async () => {
-    req.body.register = false;
-    const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
-
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-
-    (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
-
-    await AuthController(req as Request, res as Response);
-
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
-
-    expect(AuthService.isRegisteredWithinTimeFrame).not.toHaveBeenCalled();
-    expect(AuthService.hasRegistered).not.toHaveBeenCalled();
-
-    expect(AuthService.createToken).toHaveBeenCalled();
-  });
-
-  it("should call isRegisteredWithinTimeFrame and hasRegistered when register equal to true", async () => {
-    const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
-    const mockWithinTimeFrame = {
-      status: true,
+    (AuthService.isRegisteredWithinTimeFrame as jest.Mock).mockResolvedValue({
+      status: options.withinTimeFrame !== false,
       openAt: "07:00",
       closeAt: "12:00",
-    };
-
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
     });
-
-    (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
-
-    (AuthService.isRegisteredWithinTimeFrame as jest.Mock).mockResolvedValue(
-      mockWithinTimeFrame
-    );
 
     (AuthService.hasRegistered as jest.Mock).mockResolvedValue([
-      false,
-      "passed",
+      options.alreadyRegistered, 
+      options.alreadyRegistered ? "Had been registered" : "passed"
     ]);
-
-    await AuthController(req as Request, res as Response);
-
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
-
-    expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
-    expect(AuthService.hasRegistered).toHaveBeenCalledWith(mockPatient);
-    expect(AuthService.createToken).toHaveBeenCalled();
-  });
-
-  it("should throw Exception if registration is within the restricted timeframe", async () => {
-    const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
-    const mockWithinTimeFrame = {
-      status: false,
-      openAt: "07:00",
-      closeAt: "12:00",
-    };
-
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-
-    (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
-
-    (AuthService.isRegisteredWithinTimeFrame as jest.Mock).mockResolvedValue(
-      mockWithinTimeFrame
-    );
-
-    await expect(
-      AuthController(req as Request, res as Response)
-    ).rejects.toThrow(CustomException);
-
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
-    expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
-    expect(AuthService.hasRegistered).not.toHaveBeenCalled();
-    expect(AuthService.createToken).not.toHaveBeenCalled();
-  });
-
-  it("should throw Exception if the patient is already registered", async () => {
-    const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
-    const mockWithinTimeFrame = {
-      status: true,
-      openAt: "07:00",
-      closeAt: "12:00",
-    };
-
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-
-    (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
-
-    (AuthService.isRegisteredWithinTimeFrame as jest.Mock).mockResolvedValue(
-      mockWithinTimeFrame
-    );
-
-    (AuthService.hasRegistered as jest.Mock).mockResolvedValue([
-      true,
-      "Had been registered",
-    ]);
-
-    await expect(
-      AuthController(req as Request, res as Response)
-    ).rejects.toThrow(CustomException);
-
-    expect(validateUserInput).toHaveBeenCalledWith(AuthSchema, {
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
-    expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
-    expect(AuthService.hasRegistered).toHaveBeenCalledWith(mockPatient);
-    expect(AuthService.createToken).not.toHaveBeenCalled();
-  });
-
-  it("should return token when all validation is passed", async () => {
-    const mockPatient = { id: 1, no_rm: "000001", nama: "John Doe" } as Pasien;
-    const mockWithinTimeFrame = {
-      status: true,
-      openAt: "07:00",
-      closeAt: "12:00",
-    };
-
-    (validateUserInput as jest.Mock).mockReturnValue({
-      norm: "000001",
-      birthdate: "1990-01-01",
-    });
-
-    (AuthService.getPatientData as jest.Mock).mockResolvedValue(mockPatient);
-
-    (AuthService.isRegisteredWithinTimeFrame as jest.Mock).mockResolvedValue(
-      mockWithinTimeFrame
-    );
-
-    (AuthService.hasRegistered as jest.Mock).mockResolvedValue([ false, "passed" ]);
 
     (AuthService.createToken as jest.Mock).mockResolvedValue("mocked_token");
+  };
+
+  it('should throw ClientException when validation fails', async () => {
+    setupMocks({ validationError: true });
+
+    await expect(AuthController(req as Request, res as Response)).rejects.toThrow(CustomException);
+  });
+
+  it('should throw ClientException when patient is not found', async () => {
+    setupMocks({ patientNotFound: true });
+
+    await expect(AuthController(req as Request, res as Response)).rejects.toThrow(CustomException);
+    expect(AuthService.getPatientData).toHaveBeenCalledWith("000001", "1990-01-01");
+  });
+
+  it('should throw ForbiddenException when registration is outside the allowed timeframe', async () => {
+    setupMocks({ withinTimeFrame: false });
+
+    await expect(AuthController(req as Request, res as Response)).rejects.toThrow(CustomException);
+    expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
+  });
+
+  it('should throw ForbiddenException when patient is already registered', async () => {
+    setupMocks({ alreadyRegistered: true });
+
+    await expect(AuthController(req as Request, res as Response)).rejects.toThrow(CustomException);
+    expect(AuthService.hasRegistered).toHaveBeenCalledWith(mockPatient);
+  });
+
+  it.each([true, false, undefined])('should handle registration correctly when register is %s', async (registerValue) => {
+    req.body.register = registerValue;
+    setupMocks({});
+
+    await AuthController(req as Request, res as Response);
+
+    expect(AuthService.getPatientData).toHaveBeenCalledWith("000001", "1990-01-01");
+    
+    if (registerValue === true) {
+      expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
+      expect(AuthService.hasRegistered).toHaveBeenCalledWith(mockPatient);
+    } else {
+      expect(AuthService.isRegisteredWithinTimeFrame).not.toHaveBeenCalled();
+      expect(AuthService.hasRegistered).not.toHaveBeenCalled();
+    }
+
+    expect(AuthService.createToken).toHaveBeenCalledWith(mockPatient);
+    expect(res.withData).toHaveBeenCalledWith({ token: "mocked_token" });
+  });
+
+  it('should return token when all validation is passed', async () => {
+    setupMocks({});
 
     await AuthController(req as Request, res as Response);
 
@@ -268,10 +123,7 @@ describe("AuthController Test", () => {
       norm: "000001",
       birthdate: "1990-01-01",
     });
-    expect(AuthService.getPatientData).toHaveBeenCalledWith(
-      "000001",
-      "1990-01-01"
-    );
+    expect(AuthService.getPatientData).toHaveBeenCalledWith("000001", "1990-01-01");
     expect(AuthService.isRegisteredWithinTimeFrame).toHaveBeenCalled();
     expect(AuthService.hasRegistered).toHaveBeenCalledWith(mockPatient);
     expect(AuthService.createToken).toHaveBeenCalledWith(mockPatient);

@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import request from "supertest";
-import { CustomException } from "../../exceptions/CustomException";
 import ErrorHandler from "../ErrorHandler";
+import { CustomException } from "../../exceptions/CustomException";
 import { NotFoundException } from "../../exceptions/NotFoundException";
 
 const app = express();

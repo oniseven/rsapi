@@ -1,4 +1,5 @@
-import moment from "moment";
+import moment from "moment-timezone";
+
 import { Setting } from "../models/billing/master/Setting"
 import { Pasien } from "../models/billing/master/Pasien";
 import PatientService from "./PatientService";
@@ -11,8 +12,7 @@ const isRegisteredWithinTimeFrame = async (): Promise<{
 }> => {
   const setting = await Setting.findOne({
     where: {
-      id: 9,
-      aktif: 1
+      name: 'waktu_pmonline'
     }
   });
   if(!setting) throw new Error('Setting jam PM belum di set');
@@ -24,9 +24,18 @@ const isRegisteredWithinTimeFrame = async (): Promise<{
     tutup: number;
   }
 
-  const openAt = moment().startOf('day').add(timeRange.buka, 'hours');
-  const closeAt = moment().startOf('day').add(timeRange.tutup, 'hours');
-  const isBetween = moment().isBetween(openAt, closeAt);
+  // const current = moment.tz('Asia/Jakarta').startOf('day');
+  // const openAt = current.clone().add(timeRange.buka, 'hours');
+  // const closeAt = current.clone().add(timeRange.tutup, 'hours');
+  // const isBetween = moment.tz().isBetween(openAt, closeAt);
+  // console.log(openAt.toDate(), closeAt.toDate(), isBetween);
+
+  const current = moment.tz('Asia/Jakarta');
+  const openAt = current.clone().set({hour: timeRange.buka});
+  const closeAt = current.clone().set({hour: timeRange.tutup});
+  const now = moment.tz('Asia/Jakarta');
+  const isBetween = now.isBetween(openAt, closeAt, null, '[)');
+  console.log(openAt.toDate(), closeAt.toDate(), now.toDate(), isBetween);
 
   return {
     status: isBetween ? true : false,
@@ -35,23 +44,19 @@ const isRegisteredWithinTimeFrame = async (): Promise<{
   }
 }
 
-const hasRegistered = async (pasien: Pasien, visitDate?: string): Promise<[boolean, string]> => {
+const hasRegistered = async (pasien: Pasien, visitDate?: string): Promise<[boolean, string|null]> => {
   const [online, inward] = await Promise.all([
     PatientService.hasRegisteredOnline(pasien),
     PatientService.stillInWard(pasien)
   ]);
 
-  let status = online || inward ? true : false;
-  let message = "passed";
-  if(online) message = ERROR_MESSAGE.REGISTRATION.ALREADY_REGISTERED_ONLINE;
-  if(inward) message = ERROR_MESSAGE.REGISTRATION.STILL_IN_WARD;
+  if(online) return [true, ERROR_MESSAGE.REGISTRATION.ALREADY_REGISTERED_ONLINE];
+  if(inward) return [true, ERROR_MESSAGE.REGISTRATION.STILL_IN_WARD];
 
-  if(visitDate && (await PatientService.hasRegisteredOffline(pasien, visitDate))){
-    status = true;
-    message = ERROR_MESSAGE.REGISTRATION.ALREADY_REGISTERED;
-  }
+  if(visitDate && (await PatientService.hasRegisteredOffline(pasien, visitDate)))
+    return [true, ERROR_MESSAGE.REGISTRATION.ALREADY_REGISTERED];
 
-  return [status, message];
+  return [false, null];
 }
 
 export default {

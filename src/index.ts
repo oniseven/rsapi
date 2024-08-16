@@ -4,36 +4,34 @@ import dotenv from "dotenv";
 import express from "express";
 import { readFileSync } from "fs";
 import { json } from "body-parser";
+import moment from "moment-timezone";
 
 const NODE_ENV = process.env.NODE_ENV || "development";
-const ENV_FILE = NODE_ENV === "development" ? ".env.development" : ".env";
+const ENV_FILE = NODE_ENV !== "production" ? ".env.development" : ".env";
 dotenv.config({
   path: ENV_FILE,
 });
-const PORT = process.env.PORT || 8008;
 
-import moment from "moment-timezone";
-moment.tz(process.env.MOMENT_TIMEZONE || "Asia/Jakarta");
-
+import routes from "./routes";
 import ErrorHandler from "./middlewares/ErrorHandler";
 import setupMetrics from "./middlewares/MetricsHandler";
 import LimiterHandler from "./middlewares/LimiterHandler";
-import RequestHandler from "./middlewares/RequestHandler";
 import ResponseHandler from "./middlewares/ResponseHandler";
-import routes from "./routes";
+
+import dbSDM from "./middlewares/dbcons/dbSDM";
 import dbBilling from "./middlewares/dbcons/dbBilling";
 import dbAntrean from "./middlewares/dbcons/dbAntrean";
-import dbSDM from "./middlewares/dbcons/dbSDM";
 
-function mainApp() {
+const PORT = process.env.PORT || 8008;
+moment.tz(process.env.MOMENT_TIMEZONE || "Asia/Jakarta");
+
+export function createApp() {
   const app = express();
 
   // set up metric, for api monitoring using prometheus
   setupMetrics(app);
-
   // set up limiter for every user in 1 minutes
   app.use(LimiterHandler);
-
   // set up others middleware handle
   app.use(json());
   app.use(
@@ -41,26 +39,34 @@ function mainApp() {
       extended: false,
     })
   );
-
   // handling custom response
   app.use(ResponseHandler);
-
   // handling cors
   app.use(cors());
-
   // set up the route
   app.use(routes);
-
   // set up middleware error handler
   app.use(ErrorHandler);
 
-  if (NODE_ENV === "development") {
-    // start in http because its development
+  return app;
+}
+
+export async function connectDatabases() {
+  await dbBilling.authenticate();
+  console.log("-------- DB Billing connected --------");
+  // Uncomment these when ready to use
+  // await dbAntrean.authenticate();
+  // console.log("-------- DB Antrean connected --------");
+  // await dbSDM.authenticate();
+  // console.log("-------- DB SDM connected     --------");
+}
+
+function startServer(app: express.Express): void {
+  if (NODE_ENV !== "production") {
     app.listen(PORT, () => {
       console.info(`Server Http is running in ${NODE_ENV} on PORT ${PORT}`);
     });
   } else {
-    // Start App in Https
     const credential = {
       key: readFileSync("/etc/ssl/api/api_rsisjs_id.key"),
       cert: readFileSync("/etc/ssl/api/api_rsisjs_id.crt"),
@@ -76,25 +82,21 @@ function mainApp() {
 async function startApp() {
   console.log("🚀 ~ ENV:", NODE_ENV);
   console.log("🚀 ~ ENV_FILE:", ENV_FILE);
-  
+ 
   try {
-    console.log();
     console.log("#### connection to database");
-    await dbBilling.authenticate();
-    console.log("-------- DB Billing connected --------");
-
-    // await dbAntrean.authenticate();
-    // console.log("-------- DB Antrean connected --------");
-
-    // await dbSDM.authenticate();
-    // console.log("-------- DB SDM connected     --------");
-
-    console.log();
+    await connectDatabases();
+    
     console.log("#### Starting up application");
-    mainApp();
+    const app = createApp();
+    startServer(app);
   } catch (error) {
     console.log("🚀 ~ startApp ~ error:", error);
   }
 }
 
-startApp();
+if (require.main === module) {
+  startApp();
+}
+
+export { startApp };

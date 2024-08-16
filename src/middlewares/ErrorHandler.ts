@@ -8,6 +8,7 @@ export default function ErrorHandler(
   res: Response,
   next: NextFunction
 ): Response {
+  // console.log("🚀 ~ err:", err)
   let response: ResponseMetadata = {
     metadata: {
       status: false,

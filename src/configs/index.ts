@@ -11,8 +11,12 @@ const config: {
   database: DatabaseConfig;
   JWT_SECRET: string;
   JWT_EXPIRED: string;
+  port: string;
+  env: string;
   [key: string]: any;
 } = {
+  port: process.env.PORT || '8008',
+  env: process.env.NODE_ENV || 'development',
   database: {
     billing: {
       database: process.env.DB_NAME_BILLING || "default_billing_db",

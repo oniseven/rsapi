@@ -37,7 +37,7 @@ const AuthController = async (
 
     // jika sudah registrasi atau masih rawat inap
     const [hasRegistered, message] = await AuthService.hasRegistered(patient);
-    if (hasRegistered) throw new ForbiddenException(message);
+    if (hasRegistered) throw new ForbiddenException(message || '');
   }
 
   // create token
