@@ -24,18 +24,11 @@ const isRegisteredWithinTimeFrame = async (): Promise<{
     tutup: number;
   }
 
-  // const current = moment.tz('Asia/Jakarta').startOf('day');
-  // const openAt = current.clone().add(timeRange.buka, 'hours');
-  // const closeAt = current.clone().add(timeRange.tutup, 'hours');
-  // const isBetween = moment.tz().isBetween(openAt, closeAt);
-  // console.log(openAt.toDate(), closeAt.toDate(), isBetween);
-
   const current = moment.tz('Asia/Jakarta');
   const openAt = current.clone().set({hour: timeRange.buka});
   const closeAt = current.clone().set({hour: timeRange.tutup});
   const now = moment.tz('Asia/Jakarta');
   const isBetween = now.isBetween(openAt, closeAt, null, '[)');
-  console.log(openAt.toDate(), closeAt.toDate(), now.toDate(), isBetween);
 
   return {
     status: isBetween ? true : false,
