@@ -7,8 +7,8 @@ const Joi = coreJoi.extend(joiDate) as typeof coreJoi;
 export const AuthSchema = Joi.object({
   norm: Joi.string().label("No RM").required().messages({
     "any.required": JoiMessage.required,
-    "number.base": JoiMessage.string,
-    "number.empty": JoiMessage.empty,
+    "string.base": JoiMessage.string,
+    "string.empty": JoiMessage.empty,
   }),
   birthdate: Joi.date()
     .label("Tgl. Lahir")
